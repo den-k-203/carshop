@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -16,36 +17,42 @@ import java.util.List;
 public class CarController {
     @Autowired
     private CarRepo carRepo;
-
     @Autowired
-    CarService carService;
-
+    private CarService carService;
     @GetMapping("/")
-    public List<Car> home(){
-        return  carRepo.findAll();
+    public String home(Model model){
+        model.addAttribute("cars", carRepo.findAll());
+        return "index";
     }
-    @PostMapping("/new-car")
-    public Car createCar(@RequestBody String name,
-                            @RequestBody String description,
-                            @RequestBody String image,
-                            @RequestBody Double price){
 
-        String imageSource = carService.getImage(image);
+    @GetMapping("/add-car")
+    public String newCarMenu(){
+        return "new-car";
+    }
+    @PostMapping("/create-car")
+    public String createCar(@RequestParam String name,
+                            @RequestParam String description,
+                            @RequestParam String image,
+                            @RequestParam Double price){
+
         Car car = new Car();
         car.setName(name);
         car.setDescription(description);
         car.setPrice(price);
-        car.setImage(imageSource );
+        car.setImage(image);
 
-        return carRepo.save(car);
+        carRepo.save(car);
+
+        return "redirect:/";
     }
     @PostMapping("/remove-car")
-    public String removeCar(@RequestParam("id") Long id){
+    public String removeCar(@RequestParam Long id){
         carRepo.deleteById(id);
         return "redirect:/";
     }
     @PostMapping("/edit-car")
-    public Car editCar(@RequestParam("id") Long id,
+    public String editCar(Model model,
+                          @RequestParam("id") Long id,
                           @RequestBody String name,
                           @RequestBody String description,
                           @RequestBody String image,
@@ -53,13 +60,14 @@ public class CarController {
         Date date = new Date();
         String imageSource = carService.getImage(image);
         Car car = carRepo.getById(id);
+        model.addAttribute("car", car);
         car.setName(name);
         car.setPrice(price);
         car.setDescription(description);
         car.setImage(imageSource);
         car.setDate(date);
 
-        return carRepo.save(car);
+        return "edit-car";
     }
 
 }

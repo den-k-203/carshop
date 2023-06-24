@@ -17,6 +17,7 @@ public class Car {
     private String name;
     @Length(max = 255)
     private String description;
+
     @Lob
     private String image;
     private double price;
